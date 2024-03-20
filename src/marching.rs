@@ -42,6 +42,33 @@ pub struct Triangle {
     pub positions: [Vec3; 3],
 }
 
+impl Triangle {
+    fn new(positions: [Vec3; 3]) -> Self {
+        Triangle { positions }
+    }
+}
+impl PartialEq for Triangle {
+    fn eq(&self, other: &Self) -> bool {
+        let lp1 = self.positions[0];
+        let lp2 = self.positions[1];
+        let lp3 = self.positions[2];
+        let rp1 = other.positions[0];
+        let rp2 = other.positions[1];
+        let rp3 = other.positions[2];
+        if (lp1 == rp1 && lp2 == rp2 && lp3 == rp3)
+            || (lp1 == rp1 && lp2 == rp3 && lp3 == rp2)
+            || (lp1 == rp2 && lp2 == rp1 && lp3 == rp3)
+            || (lp1 == rp2 && lp2 == rp3 && lp3 == rp1)
+            || (lp1 == rp3 && lp2 == rp1 && lp3 == rp2)
+            || (lp1 == rp3 && lp2 == rp2 && lp3 == rp1)
+        {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct GridCell {
     pub positions: [Vec3; 8],
@@ -60,10 +87,7 @@ impl MarchingCubes {
     ///
     /// A new instance of the `MarchingCubes` struct.
     pub fn new(iso_value: f32, grid: GridCell) -> Self {
-        Self {
-            iso_value,
-            grid
-        }
+        Self { iso_value, grid }
     }
 
     /// Polygonises a grid cell based on the stored isolevel, populating the given `triangles` slice with the resulting triangles.
@@ -76,7 +100,7 @@ impl MarchingCubes {
     /// # Returns
     ///
     /// The number of triangles generated, as an `i32`.
-    pub fn polygonise(self, triangles: &mut [Triangle]) -> i32 {
+    pub fn polygonise(self, triangles: &mut Vec<Triangle>) -> i32 {
         polygonise(self.grid, self.iso_value, triangles)
     }
 }
@@ -121,7 +145,7 @@ impl MarchingCubes {
 ///
 /// assert_eq!(result, 4);
 /// ```
-pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]) -> i32 {
+pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut Vec<Triangle>) -> i32 {
     let mut cube_index: usize;
     let mut vertices_list: [Vec3; 12] = [empty_vec3(); 12];
 
@@ -158,7 +182,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         return 0i32;
     }
 
-    if EDGE_TABLE[cube_index] & 1 == 0 {
+    if EDGE_TABLE[cube_index] & 1 != 0 {
         vertices_list[0] = interpolate_vertex(
             isolevel,
             grid_cell.positions[0],
@@ -167,7 +191,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 2 == 0 {
+    if EDGE_TABLE[cube_index] & 2 != 0 {
         vertices_list[1] = interpolate_vertex(
             isolevel,
             grid_cell.positions[1],
@@ -176,7 +200,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 4 == 0 {
+    if EDGE_TABLE[cube_index] & 4 != 0 {
         vertices_list[2] = interpolate_vertex(
             isolevel,
             grid_cell.positions[2],
@@ -185,7 +209,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 8 == 0 {
+    if EDGE_TABLE[cube_index] & 8 != 0 {
         vertices_list[3] = interpolate_vertex(
             isolevel,
             grid_cell.positions[3],
@@ -194,7 +218,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 16 == 0 {
+    if EDGE_TABLE[cube_index] & 16 != 0 {
         vertices_list[4] = interpolate_vertex(
             isolevel,
             grid_cell.positions[4],
@@ -203,7 +227,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 32 == 0 {
+    if EDGE_TABLE[cube_index] & 32 != 0 {
         vertices_list[5] = interpolate_vertex(
             isolevel,
             grid_cell.positions[5],
@@ -212,7 +236,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 64 == 0 {
+    if EDGE_TABLE[cube_index] & 64 != 0 {
         vertices_list[6] = interpolate_vertex(
             isolevel,
             grid_cell.positions[6],
@@ -221,7 +245,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 128 == 0 {
+    if EDGE_TABLE[cube_index] & 128 != 0 {
         vertices_list[7] = interpolate_vertex(
             isolevel,
             grid_cell.positions[7],
@@ -230,7 +254,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 256 == 0 {
+    if EDGE_TABLE[cube_index] & 256 != 0 {
         vertices_list[8] = interpolate_vertex(
             isolevel,
             grid_cell.positions[0],
@@ -238,7 +262,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
             vector2(grid_cell.value[0], grid_cell.value[4]),
         )
     }
-    if EDGE_TABLE[cube_index] & 512 == 0 {
+    if EDGE_TABLE[cube_index] & 512 != 0 {
         vertices_list[9] = interpolate_vertex(
             isolevel,
             grid_cell.positions[1],
@@ -247,7 +271,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 1024 == 0 {
+    if EDGE_TABLE[cube_index] & 1024 != 0 {
         vertices_list[10] = interpolate_vertex(
             isolevel,
             grid_cell.positions[2],
@@ -256,7 +280,7 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
         )
     }
 
-    if EDGE_TABLE[cube_index] & 2048 == 0 {
+    if EDGE_TABLE[cube_index] & 2048 != 0 {
         vertices_list[11] = interpolate_vertex(
             isolevel,
             grid_cell.positions[3],
@@ -268,24 +292,39 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
     let mut triangle_num = 0;
 
     for mut i in 0.. {
-        let tri = TRI_TABLE[cube_index][i];
-
-        if tri == -1 {
+        let tri1 = TRI_TABLE[cube_index][i];
+        let tri2 = TRI_TABLE[cube_index][i + 1];
+        let tri3 = TRI_TABLE[cube_index][i + 2];
+        if tri1 == -1 || tri2 == -1 || tri3 == -1 {
             break;
         }
+        if tri1 == tri2 || tri2 == tri3 || tri3 == tri1 {
+            continue;
+        }
+        let v1 = vertices_list[TRI_TABLE[cube_index][i] as usize];
+        let v2 = vertices_list[TRI_TABLE[cube_index][i + 1] as usize];
+        let v3 = vertices_list[TRI_TABLE[cube_index][i + 2] as usize];
 
         i += 3;
-
-        (*triangles)[triangle_num].positions[0] = vertices_list[TRI_TABLE[cube_index][i] as usize];
+        let new_triangle = Triangle::new([v1, v2, v3]);
+        let mut nopush = false;
+        for t in triangles.iter() {
+            if *t == new_triangle {
+                nopush = true;
+            }
+        }
+        if !nopush {
+            triangles.push(new_triangle);
+            triangle_num += 1;
+        }
+        /*(*triangles)[triangle_num].positions[0] = vertices_list[TRI_TABLE[cube_index][i] as usize];
         (*triangles)[triangle_num].positions[1] =
             vertices_list[TRI_TABLE[cube_index][i + 1] as usize];
         (*triangles)[triangle_num].positions[2] =
-            vertices_list[TRI_TABLE[cube_index][i + 2] as usize];
-
-        triangle_num += 1;
+            vertices_list[TRI_TABLE[cube_index][i + 2] as usize];*/
     }
 
-    0i32
+    triangle_num
 }
 
 /// Interpolates a vertex using `isolevel`, `point1`, `point2`, and `alpha_points`
@@ -319,12 +358,11 @@ pub fn polygonise(grid_cell: GridCell, isolevel: f32, triangles: &mut [Triangle]
 /// ```
 fn interpolate_vertex(isolevel: f32, point1: Vec3, point2: Vec3, alpha_points: Vec2) -> Vec3 {
     const ISO_THRESHOLD: f32 = 0.00001;
-
     let mut point = empty_vec3();
     let factor = (isolevel - alpha_points[0]) / (alpha_points[1] - alpha_points[0]);
 
     if (isolevel - alpha_points[0]).abs() < ISO_THRESHOLD
-        || (alpha_points[0] - alpha_points[1]) < ISO_THRESHOLD
+        || (alpha_points[0] - alpha_points[1]).abs() < ISO_THRESHOLD
     {
         return point1;
     } else if (isolevel - alpha_points[1]).abs() < ISO_THRESHOLD {
